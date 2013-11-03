@@ -107,13 +107,14 @@
 			<li>The collisions are not very precise. Phaser works with rectangles.</li>
 			<li>Explosion sound in Firefox is bugged - but hey, there's no sound in space!</li>
 			<li>No window resize - refresh the page if you see any glitches</li>
+			<li>Music is not paused on lost focus</li>
 			<li>My Javascript sucks</li>
 		</ul>
 
 		<h2>Credits</h2>
 		<ul>
 			<li><a target="_blank" href="http://phaser.io/">Phaser - JavaScript game engine</a></li>
-			<li><a target="_blank" href="http://abikk.deviantart.com/art/Outsider-191631196">AbikK - background image</a></li>
+			<li><a target="_blank" href="http://abikk.deviantart.com/art/Outsider-191631196">AbikK - background image "Outsider"</a></li>
 			<li><a target="_blank" href="https://github.com/GarageGames/Torque2D/wiki/Getting-Started-Guide">Torque2D tutorial - the asteroid image</a></li>
 			<li><a target="_blank" href="http://www.kenney.nl">Kenney Vleugels (www.kenney.nl) - spaceship parts</a></li>
 			<li><a target="_blank" href="http://www.nosoapradio.us/">NOSOAPRADIO.US - music</a></li>
@@ -212,13 +213,22 @@
 	function actionOnClickMusic() {
 		if (music !== 'defined') {
 			if (music.isPlaying) {
-				music.pause();
-				musicButton.setFrames(1, 1, 1);
+				setMusicCookie('off');
+				playMusic(false);
 			} else {
-				music.play('main');
-				musicButton.setFrames(0, 0, 0);
-
+				setMusicCookie('on');
+				playMusic(true);
 			}
+		}
+	}
+
+	function playMusic(play) {
+		if (play) {
+			music.play('main');
+			musicButton.setFrames(0, 0, 0);
+		} else {
+			music.pause();
+			musicButton.setFrames(1, 1, 1);			
 		}
 	}
 
@@ -352,12 +362,6 @@
 
 		explosionSound = game.add.audio('explosionSound');
 
-		// play music only if it is not already playing
-		if (typeof music === 'undefined') {
-			music = game.add.audio('music', 1, true);
-			music.addMarker('main', 0, 134.008125, 0.5, true);
-	        music.play('main');
-		}
 
         button = game.add.button(0, 0, 'start', actionOnClick, this, 0, 0, 0);
         button.anchor.setTo(0, 0);
@@ -368,7 +372,13 @@
         musicButton.anchor.setTo(1, 0);
         musicButton.scale.setTo(scale * 0.3, scale * 0.3);
         musicButton.alpha=0.2;
-        
+  
+		// play music only if it is not already playing
+		if (typeof music === 'undefined') {
+			music = game.add.audio('music', 1, true);
+			music.addMarker('main', 0, 134.008125, 0.5, true);
+	        playMusic(getMusicCookie() == 'on');
+		}      
         
 	}
 
@@ -456,13 +466,16 @@
 	}
 
 	function update() {
-		//music looping is not working for some reason
+		//music looping is not working for some reason, force loop
 		if (music.currentTime > 133000) {
 			music.stop();
-			music.play('main');
+			playMusic(getMusicCookie() == 'on');
 		}
 
-		if (state == 'gameover') {
+		if (state == 'paused') {
+			state = oldState;
+			return;
+		} else if (state == 'gameover') {
 			return;
 		}
 
@@ -641,8 +654,27 @@
 		asteroid.body.velocity.y = 0;
     }
 
+	function setMusicCookie(value) 	{
+		document.cookie="tcob1-music=" + value;
+	}
 
-
+	function getMusicCookie() {
+		var value = 'on';
+		var cookies = document.cookie;
+		var index = cookies.indexOf(" tcob1-music=");
+		if (index == -1) {
+			index = cookies.indexOf("tcob1-music=");
+		}
+		if (index != -1) {
+			index = cookies.indexOf("=", index) + 1;
+			var end = cookies.indexOf(";", index);
+			if (end == -1)  {
+				end = cookies.length;
+			}
+			value = unescape(cookies.substring(index,end));
+		}
+		return value;
+	}
 
 })();
 
