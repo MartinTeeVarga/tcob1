@@ -105,6 +105,15 @@
 		<p>
 			Thank you for playing! 
 		</p>
+		<h2>License</h2>
+		<p>
+			MIT
+		</p>
+		<h2>Source codes</h2>
+		<p>
+			<a href="https://github.com/sm4/tcob1">https://github.com/sm4/tcob1</a>
+		</p>
+
 
 	</div>
 
@@ -168,8 +177,9 @@
 	var asteroid;
 	var noOfActors = 4;
 
-	const asteroidBaseVelocity = 250;
-	const asteroidVelocityIncrease = 15;
+	const asteroidBaseVelocity = 250 * scale;
+	const asteroidVelocityIncrease = 15 * scale;
+	const asteroidBodySize = 0.8;
 
 	var explosionSound;
 	var music;
@@ -178,7 +188,7 @@
 	var lastTime = Date.now();
 	var scrollSpeed = 12;
 
-	const baseVelocity = 1;
+	const baseVelocity = 1 * scale;
 	const baseDrain = 0.0004;
 	const baseRecharge = 0.00012;
 
@@ -226,6 +236,7 @@
 		asteroid = game.add.sprite(-width, -height, 'asteroid', 0);
 		asteroid.anchor.x = 0.5;
 		asteroid.anchor.y = 0.5;
+		asteroid.body.setSize(asteroid.body.width * asteroidBodySize, asteroid.body.height * asteroidBodySize, 0, 0);
 		resetAsteroid();		
 	}
 
@@ -566,6 +577,13 @@
 	}
 
 	function render() {
+		// game.debug.renderRectangle(asteroid.body);
+		// game.debug.renderRectangle(actors[0].body);
+		// game.debug.renderText(asteroidScale, 32, 288, 'rgb(255,255,255)');
+		// game.debug.renderText(asteroid.body.width, 32, 312, 'rgb(255,255,255)');
+		// game.debug.renderText(asteroid.body.height, 32, 342, 'rgb(255,255,255)');
+		// game.debug.renderText(asteroid.width, 32, 372, 'rgb(255,255,255)');
+		// game.debug.renderText(asteroid.height, 32, 402, 'rgb(255,255,255)');
 
         // game.debug.renderSpriteCorners(player);
         // game.debug.renderSpriteCollision(actors[0], 32, 32);
@@ -577,9 +595,9 @@
         // game.debug.renderSoundInfo(music, 32, 350);
 
     }
-
+var asteroidScale;
     function resetAsteroid() {
-    	var asteroidScale = (Math.random() / 2 + 0.5) * scale;
+    	asteroidScale = (Math.random() / 2 + 0.5) * scale;
     	asteroid.scale.x = asteroidScale;
     	asteroid.scale.y = asteroidScale;
 		asteroid.x = -width;
