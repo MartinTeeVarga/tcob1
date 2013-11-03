@@ -18,7 +18,7 @@ Press any of the keys to gain control of the ship at any time.
 *   The collisions are not very precise. Phaser works with rectangles.
 *   Explosion sound in Firefox is bugged - but hey, there's no sound in space!
 *   No window resize - refresh the page if you see any glitches
-*   Music is not paused on lost focus
+*   Music is not paused on lost focus and looping is broken
 *   My Javascript sucks
 
 ## Credits
