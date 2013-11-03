@@ -197,7 +197,7 @@
 	        ship.anchor.setTo(0.5, 0.5);
 	        ship.scale.setTo(scale * 0.5, scale * 0.5);
 
-	        var button = game.add.button(game.world.centerX, game.world.height * 0.75, 'start', actionOnClick, this, 0, 0, 0);
+	        button = game.add.button(game.world.centerX, game.world.height * 0.75, 'start', actionOnClick, this, 0, 0, 0);
 	        button.scale.setTo(scale, scale);
 	        button.anchor.setTo(0.5, 0.5);
 	    }
@@ -234,6 +234,7 @@
 	var explosionSound;
 	var music;
 	var musicButton;
+	var button;
 
 	var start = Date.now();
 	var lastTime = Date.now();
@@ -357,15 +358,15 @@
 	        music.play('main');
 		}
 
-        var button = game.add.button(0, 0, 'start', actionOnClick, this, 0, 0, 0);
+        button = game.add.button(0, 0, 'start', actionOnClick, this, 0, 0, 0);
         button.anchor.setTo(0, 0);
         button.scale.setTo(scale * 0.3, scale * 0.3);
-        button.alpha=0.5;
+        button.alpha=0.2;
 
         musicButton = game.add.button(game.world.width, 0, 'musicButton', actionOnClickMusic, this, 0, 0, 0);
         musicButton.anchor.setTo(1, 0);
         musicButton.scale.setTo(scale * 0.3, scale * 0.3);
-        musicButton.alpha=0.5;
+        musicButton.alpha=0.2;
         
         
 	}
@@ -605,6 +606,7 @@
 			actors[i].animations.stop('burn');
 			actors[i].body.velocity.setTo(0, 0);
 		}
+		button.alpha=1;
 	}
 
 	function printMessage(msg) {
