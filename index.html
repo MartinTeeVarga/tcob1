@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="utf-8" />
+    <title>There Can Only Be One</title>
+    <script src="phaser.min.js"></script>
+    <style type="text/css">
+
+    	body {
+    		background-image: url(assets/alien_s_playground_by_alienphysique-d67gmwe.jpg);
+    		background-size: cover;
+    		background-repeat: no-repeat;
+    		color:white;
+    		padding: 0;
+    		margin: 0;
+    		font-family: Calibri, Candara, Segoe, "Segoe UI", Optima, Arial, sans-serif;
+    	}
+
+    	canvas {
+    		border: 0;
+    		margin: auto;
+    		padding: 5px;
+    		border-radius: 15px;
+    	}
+
+    	a {
+    		color: white;
+
+    	}
+
+    	#game {
+    		position: relative;
+    		margin: 5px;
+    		top:0;
+    	}
+
+
+    	.info {
+    	    position: absolute;
+    		padding: 10px;
+    		margin: 5px;
+    		background: black;
+    		opacity: 0.5;
+    		z-index: 999;
+			border-radius: 15px;
+			overflow-y:auto;	
+    	}
+
+    	#left {
+    		left:0;
+    		top:0;
+    	}
+
+    	#right {
+    		top:0;
+    		right:0;
+    	}    	
+
+    </style>
+</head>
+<body>
+	<div id="left" class="info">
+		<h1>TCOB1</h1>
+		<p>
+			This game was made for <a href="http://meta.gamedev.stackexchange.com/questions/1356/the-first-gdse-gamejam" target="_blank">GameDev.StackExchange Game Jam.</a> The theme was "There can only be one" (sic). The game genre is "endless" space racing where players are eliminated by asteroids. The last player in the game wins.
+		</p>
+		<p>
+			The game can be played in both single player and multiplayer. Up to 4 players can compete at one computer. Player controls a ship with 4 directional keys. The movement consumes energy. Energy bar in player's color is displayed at the bottom. Energy recharges over time. Flying without energy is much slower. Only head-on collision is fatal. You can push the asteroid left and right with wings.
+		</p>
+		<h2>Keyboard controls</h2>
+		<ul>
+			<li>Red: W, S, A, D</li>
+			<li>Green: I, J, K, L</li>
+			<li>Blue: Arrows</li>
+			<li>Yellow: Numpad keys 5, 1, 2, 3</li>
+
+		</ul>
+		<p>
+			Press any of the keys to gain control of the ship at any time.
+		</p>
+
+	</div>
+
+	<div id="right" class="info">
+		<h2>Known issues</h2>
+		<ul>
+			<li>The collisions are not very precise. Phaser works with rectangles.</li>
+			<li>Explosion sound in Firefox is bugged - but hey, there's no sound in space!</li>
+			<li>No window resize - refresh the page if you see any glitches</li>
+			<li>My Javascript sucks</li>
+		</ul>
+
+		<h2>Credits</h2>
+		<ul>
+			<li><a target="_blank" href="http://phaser.io/">Phaser - JavaScript game engine</a></li>
+			<li><a target="_blank" href="http://www.deviantart.com/art/Alien-s-Playground-375330542">AlienPhysique - background image</a></li>
+			<li><a target="_blank" href="https://github.com/GarageGames/Torque2D/wiki/Getting-Started-Guide">Torque2D tutorial - the asteroid image</a></li>
+			<li><a target="_blank" href="http://www.kenney.nl">Kenney Vleugels (www.kenney.nl) - spaceship parts</a></li>
+			<li><a target="_blank" href="http://www.nosoapradio.us/">NOSOAPRADIO.US - music</a></li>
+			<li><a target="_blank" href="http://www.bfxr.net/">bfxr - sound generator</a></li>
+			<li><a target="_blank" href="http://android.kul.is/">and me, sm4 - everything else</a></li>
+
+		</ul>
+		<p>
+			Thank you for playing! 
+		</p>
+
+	</div>
+
+
+	<div id="game"></div>
+
+    <script type="text/javascript">
+
+(function () {
+
+	// TODOs
+	// Find out how to scale the whole canvas and remove everything that depends on 'scale'
+	// Scale to device size
+
+	// var width = 432;
+	// var height = 720;
+
+	var ratio = 1.6;
+	var height = window.innerHeight - 20;
+	var width = height / ratio;
+
+	var scale = height / 720;
+
+	var wLeft = (window.innerWidth - width) / 2 - 45;
+	var divLeft = document.getElementById("left");
+    divLeft.style.width = wLeft + "px";
+    divLeft.style.maxHeight = (height - 64) + "px";
+	var divRight = document.getElementById("right");
+    divRight.style.width = wLeft + "px";
+    divRight.style.maxHeight = (height - 64) + "px";
+
+	var gameState = { preload: preload, create: create, update: update, render: render };
+    var introState = {
+
+	    preload: function () {
+	        game.load.image('logo', 'assets/logo.png');
+	        game.load.image('ship', 'assets/ship.png');
+	        game.load.image('start', 'assets/start.png');
+	    },
+	    create: function () {
+	        var logo = game.add.sprite(0, 0, 'logo');
+	        logo.scale.setTo(scale * 0.5, scale * 0.5);
+
+	        var ship = game.add.sprite(game.world.centerX, game.world.centerY, 'ship');
+	        ship.anchor.setTo(0.5, 0.5);
+	        ship.scale.setTo(scale * 0.5, scale * 0.5);
+
+	        var button = game.add.button(game.world.centerX, game.world.height * 0.75, 'start', actionOnClick, this, 2, 1, 0);
+	        button.scale.setTo(scale, scale);
+	        button.anchor.setTo(0.5, 0.5);
+	    }
+	}
+
+	function actionOnClick() {
+		game.state.start('game', true, true) ;
+	}
+
+	var bg1;
+    var bg2;
+	var actors = new Array();
+	var asteroid;
+	var noOfActors = 4;
+
+	const asteroidBaseVelocity = 250;
+	const asteroidVelocityIncrease = 15;
+
+	var explosionSound;
+	var music;
+
+	var start = Date.now();
+	var lastTime = Date.now();
+	var scrollSpeed = 12;
+
+	const baseVelocity = 1;
+	const baseDrain = 0.0004;
+	const baseRecharge = 0.00012;
+
+	var gracePeriod;
+	var interval = 5000;
+	var asteroidVelocity;
+
+	var state;
+
+	var collisions = 0;
+
+	var game = new Phaser.Game(width, height, Phaser.CANVAS, 'game');
+
+    game.state.add('intro', introState, true);
+    game.state.add('game', gameState);
+
+	function preload() {
+
+		game.load.spritesheet('ship', 'assets/ship-new.png', 64, 64, 8);
+		game.load.spritesheet('asteroid', 'assets/asteroids.png', 128, 128, 4);
+		game.load.spritesheet('explosion', 'assets/explosion.png', 64, 64, 25);
+        game.load.image('background', 'assets/stars2.png');
+        game.load.spritesheet('energyBar', 'assets/energy.png', 64, 16, 4);
+        game.load.image('start', 'assets/start.png');
+
+        game.load.audio('explosionSound', ['assets/explosion.mp3', 'assets/explosion.ogg']);
+
+        game.load.audio('music', ['assets/DST-StreetFightLoop.mp3']);
+
+
+	}
+
+
+
+	function createBackground() {
+        bg1 = game.add.sprite(0, 0, 'background');
+		bg2 = game.add.sprite(0, -bg1.height * scale, 'background');
+		bg1.scale.x = scale;
+		bg1.scale.y = scale;
+		bg2.scale.x = scale;
+		bg2.scale.y = scale;		
+	}
+
+	function createAsteroid() {
+		asteroid = game.add.sprite(-width, -height, 'asteroid', 0);
+		asteroid.anchor.x = 0.5;
+		asteroid.anchor.y = 0.5;
+		resetAsteroid();		
+	}
+
+	function createExplosion() {
+		var explosion = game.add.sprite(-width, -height, 'explosion');
+		explosion.animations.add('boom');
+		explosion.anchor.x = 0.5;
+		explosion.anchor.y = 0.5;
+		return explosion;	
+	}
+
+	function createEnergyBar(barX, index) {
+		var energyBar = game.add.sprite(barX, game.world.height - (64 * scale), 'energyBar', index);
+
+		energyBar.alpha = 0.3;
+		energyBar.anchor.x = 0.5;
+		energyBar.anchor.y = 0.5;
+		energyBar.scale.x = scale;
+		energyBar.scale.y = scale;	
+
+
+		return energyBar;
+	}
+
+	function createActors() {
+
+		var quarter = game.world.centerX / 2;
+		
+
+		for (var i=0; i < noOfActors; i++) {
+			var xPos = quarter / 2 + i * (quarter);
+			actors[i] = game.add.sprite(xPos, game.world.centerY, 'ship');
+			actors[i].animations.add('burn', [i, i+4]);
+
+			actors[i].animations.play('burn', 150 + (i*10), true);
+			actors[i].anchor.x = 0.5;
+			actors[i].anchor.y = 0.5;
+
+			actors[i].body.bounce.y = 0.5;
+	        actors[i].body.collideWorldBounds = true;
+	        actors[i].body.gravity.y = 0;
+
+	        actors[i].energy = 1;
+
+	        actors[i].scale.x = scale;
+	        actors[i].scale.y = scale;
+
+	        actors[i].state = 'new';
+
+	        actors[i].name = 'Player ' + (i + 1);
+
+	        actors[i].explosion = createExplosion();
+	        actors[i].energyBar = createEnergyBar(xPos, i);
+
+	        actors[i].restingPositionShift = 50 * Math.random() * scale;
+		}
+
+	}
+
+	function create() {
+		state = 'new';
+		collisions = 0;
+		start = Date.now();
+		lastTime = Date.now();
+		asteroidVelocity = asteroidBaseVelocity;
+		createBackground();
+		createAsteroid();
+		
+		createActors();
+		player = actors[0];	
+
+		explosionSound = game.add.audio('explosionSound');
+
+		if (typeof music === 'undefined') {
+			music = game.add.audio('music', 1, true);
+			music.addMarker('main', 0, 134.008125, 0.5, true);
+	        music.play('main');
+		}
+
+
+
+        var button = game.add.button(0, 0, 'start', actionOnClick, this, 2, 1, 0);
+        button.anchor.setTo(0, 0);
+        button.scale.setTo(scale * 0.3, scale * 0.3);
+        button.alpha=0.5;
+        
+	}
+
+
+	function updateBackground() {
+        bg1.y = bg1.y + scrollSpeed * scale;
+        bg2.y = bg2.y + scrollSpeed * scale;
+
+        if (bg1.y > height) {
+        	bg1.y = -bg1.height;;
+        }
+        if (bg2.y > height) {
+        	bg2.y = -bg2.height;
+        }
+	}
+
+	function updateCollisions() {
+		for (var i = 0; i < noOfActors; i++) {
+			if (state == 'asteroid') {
+				game.physics.collide(actors[i], asteroid, collisionHandler);
+			}
+			
+			for (var j = 0; j < noOfActors; j++) {
+				if (i != j) {
+					game.physics.collide(actors[i], actors[j]);
+				}
+			}
+		}		
+	}
+
+    function collisionHandler(actor, asteroid) {
+    	if (actor.body.touching.up) {
+    		explosionSound.stop();
+        	explosionSound.play();
+        	console.log(actor.name + ' collided with Asteroid');
+        	actor.explosion.x = actor.x;
+        	actor.explosion.y = actor.y;
+        	actor.explosion.animations.play('boom', 50, false);
+        	actor.explosion.body.velocity.y = 250;
+        	actor.state = 'crashed';
+        	actor.energyBar.kill();
+        	actor.kill();
+        	collisions++;
+        }
+
+    }	
+
+
+	function updateEnergyBar() {
+		for (var i = 0; i < noOfActors; i++) {
+			actors[i].energyBar.scale.x = actors[i].energy * scale;	
+		}
+			
+	}
+
+	var rot;
+	function updateObstacles() {
+		if (state == 'new') {
+			gracePeriod = Date.now() + interval;
+			interval = 2500;
+			state = 'waiting';
+		} else if (state =='waiting') {
+			if (Date.now() > gracePeriod) {
+				state = 'asteroid';
+				asteroid.y = -asteroid.height;
+				asteroid.x = width * Math.random();
+				asteroid.body.velocity.y = asteroidVelocity += asteroidVelocityIncrease;
+				asteroid.angle = 360 * Math.random();
+				rot = Math.random() - 0.5;
+			
+			}
+		} else if (state == 'asteroid') {
+			asteroid.body.velocity.y++;
+			asteroid.angle+=rot;
+			if (asteroid.y > height + asteroid.height) {
+				resetAsteroid();
+				interval-=100;
+				gracePeriod = Date.now() + interval;
+
+				state = 'waiting';
+			}
+		}
+	}
+
+	function update() {
+		//music looping is not working for some reason
+		if (music.currentTime > 133000) {
+			music.stop();
+			music.play('main');
+		}
+
+		if (state == 'gameover') {
+			return;
+		}
+
+		var timeInMs = Date.now();
+		var delta =  (timeInMs - lastTime);
+		checkState();
+
+		if (delta > 1000) { //TODO deal with long pause with some onPause/onResume methods
+			delta = 0;
+		}
+
+		updateBackground();
+		updateCollisions();
+		updateEnergyBar();
+		updateObstacles();
+
+		var vel = baseVelocity * delta;
+		var energyDrain = baseDrain * delta;
+		updatePlayer(actors[0], vel, energyDrain, Phaser.Keyboard.W, Phaser.Keyboard.S, Phaser.Keyboard.A, Phaser.Keyboard.D);
+		updatePlayer(actors[1], vel, energyDrain, Phaser.Keyboard.I, Phaser.Keyboard.K, Phaser.Keyboard.J, Phaser.Keyboard.L);
+		updatePlayer(actors[2], vel, energyDrain, Phaser.Keyboard.UP, Phaser.Keyboard.DOWN, Phaser.Keyboard.LEFT, Phaser.Keyboard.RIGHT);
+		updatePlayer(actors[3], vel, energyDrain, Phaser.Keyboard.NUMPAD_5, Phaser.Keyboard.NUMPAD_2, Phaser.Keyboard.NUMPAD_1, Phaser.Keyboard.NUMPAD_3);
+
+		updateAI(vel, energyDrain);
+		
+
+	    rechargeEnergy(baseRecharge * delta);
+
+		lastTime = Date.now();
+
+	}
+
+	function updatePlayer(player, deltaVel, energyDrain, up, down, left, right) {
+
+		if (player.energy > baseDrain && player.state != 'crashed') {
+	        if (game.input.keyboard.isDown(left)) {
+				pressLeft(player, deltaVel, energyDrain);
+	            player.human = true;
+	        } 
+	        if (game.input.keyboard.isDown(right)) {
+				pressRight(player, deltaVel, energyDrain);
+	            player.human = true;
+	        } 
+	        if (game.input.keyboard.isDown(up)) {
+	            pressUp(player, deltaVel, energyDrain);
+	            player.human = true;
+	        } 
+	        if (game.input.keyboard.isDown(down)) {
+	        	pressDown(player, deltaVel, energyDrain);
+	            player.human = true;
+	        }	
+	    }
+	}
+
+	function drainEnergy(player, energyDrain) {
+		player.energy-=energyDrain;		
+	}
+
+	function pressDown(player, deltaVel, energyDrain) {
+	    player.body.velocity.y+=deltaVel;
+		drainEnergy(player, energyDrain);
+	}
+
+	function pressUp(player, deltaVel, energyDrain) {
+	    player.body.velocity.y-=deltaVel;
+	    drainEnergy(player, energyDrain);	
+	}
+
+
+	function pressLeft(player, deltaVel, energyDrain) {
+	    player.body.velocity.x-=deltaVel;
+		drainEnergy(player, energyDrain);
+	}
+
+	function pressRight(player, deltaVel, energyDrain) {
+	    player.body.velocity.x+=deltaVel;
+	    drainEnergy(player, energyDrain);	
+	}	
+
+	function updateAI(deltaVel, energyDrain) {
+
+		for (var i = 0; i < noOfActors; i++) {
+			var ship = actors[i];
+			if (!ship.human && ship.state != 'crashed' && ship.energy > baseDrain) {
+				// try to keep down, make it a bit differnet for each player
+				var somewhereDown = game.world.height * 0.75 + ship.restingPositionShift;
+				
+				if (Math.abs(ship.y - somewhereDown) < 50 * scale) {
+					// almost there
+				} else if (ship.y < somewhereDown && ship.body.velocity.y < 100) {
+					pressDown(ship, deltaVel, energyDrain);
+				} else if (ship.y > somewhereDown && ship.body.velocity.y > -100) {
+					pressUp(ship, deltaVel, energyDrain);
+				}
+
+				var asteroidMaxX = asteroid.x + asteroid.width / 2;
+				var asteroidMinX = asteroid.x - asteroid.width / 2;
+
+				var shipMaxX = ship.x + ship.width / 2;
+				var shipMinX = ship.x - ship.width / 2;
+
+				if (shipMaxX < asteroidMinX || shipMinX > asteroidMaxX) {
+					// keep calm
+				} else if (shipMaxX > asteroidMinX || shipMinX < asteroidMaxX) { // collision course
+					if (asteroid.x < game.world.centerX) {
+						if (ship.body.touching.right) {
+							pressUp(ship, deltaVel, energyDrain);
+						} else {
+							pressRight(ship, deltaVel, energyDrain);
+						}
+					} else {
+						if (ship.body.touching.left) {
+							pressDown(ship, deltaVel, energyDrain);
+						} else {
+							pressLeft(ship, deltaVel, energyDrain);
+						}
+					}
+				} 
+
+			}
+		}
+
+	}
+
+	function checkState() {
+		if (collisions == noOfActors - 1) {
+			for (var i = 0; i < noOfActors; i++) {
+				if (actors[i].state != 'crashed') {
+					printMessage(actors[i].name + " wins!");
+				}
+			}
+			gameover();
+		}
+
+	}
+
+	function gameover() {
+		state = 'gameover';
+		asteroid.kill();
+		for (var i = 0; i < noOfActors; i++) {
+			actors[i].animations.stop('burn');
+			actors[i].body.velocity.setTo(0, 0);
+		}
+	}
+
+	function printMessage(msg) {
+		var style = { font: "bold " + (30 * scale) + "pt Arial", fill: "#ffffff", align: "center", stroke: "#258acc", strokeThickness: 8 };
+
+		s = game.add.text(game.world.centerX, game.world.centerY, msg, style);
+		s.anchor.setTo(0.5, 0.5);		
+	}
+
+	function rechargeEnergy(energyGain) {
+		for (var i = 0; i < noOfActors; i++) {
+			if (actors[i].energy < 1) {
+		        actors[i].energy += energyGain;
+		    } else {
+		    	actors[i].energy = 1;
+		    }
+		}
+	}
+
+	function render() {
+
+        // game.debug.renderSpriteCorners(player);
+        // game.debug.renderSpriteCollision(actors[0], 32, 32);
+        // game.debug.renderText(explosionSound.key, 32, 16, 'rgb(255,255,255)');
+        // game.debug.renderText(asteroid.x + ", " + asteroid.y, 32, 256, 'rgb(255,255,255)');
+        // game.debug.renderText(asteroid.angle, 32, 312, 'rgb(255,255,255)');
+        // game.debug.renderText('left: ' + player.body.touching.left, 32, 32, 'rgb(255,255,255)');
+        // game.debug.renderText('right: ' + player.body.touching.right, 32, 64, 'rgb(255,255,255)');
+        // game.debug.renderSoundInfo(music, 32, 350);
+
+    }
+
+    function resetAsteroid() {
+    	var asteroidScale = (Math.random() / 2 + 0.5) * scale;
+    	asteroid.scale.x = asteroidScale;
+    	asteroid.scale.y = asteroidScale;
+		asteroid.x = -width;
+		asteroid.y = -height;
+		asteroid.body.velocity.x = 0;
+		asteroid.body.velocity.y = 0;
+    }
+
+
+
+
+})();
+
+    </script>
+</body>
+</html>
