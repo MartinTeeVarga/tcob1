@@ -213,10 +213,11 @@
 		if (music !== 'defined') {
 			if (music.isPlaying) {
 				music.pause();
-				musicButton.frame = 1;
+				musicButton.setFrames(1, 1, 1);
 			} else {
 				music.play('main');
-				musicButton.frame = 0;
+				musicButton.setFrames(0, 0, 0);
+
 			}
 		}
 	}
