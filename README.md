@@ -18,12 +18,13 @@ Press any of the keys to gain control of the ship at any time.
 *   The collisions are not very precise. Phaser works with rectangles.
 *   Explosion sound in Firefox is bugged - but hey, there's no sound in space!
 *   No window resize - refresh the page if you see any glitches
+*   Music is not paused on lost focus
 *   My Javascript sucks
 
 ## Credits
 
 *   [Phaser - JavaScript game engine](http://phaser.io/)
-*   [AlienPhysique - background image](http://www.deviantart.com/art/Alien-s-Playground-375330542)
+*   [AbikK - background image "Outsider"](http://abikk.deviantart.com/art/Outsider-191631196)
 *   [Torque2D tutorial - the asteroid image](https://github.com/GarageGames/Torque2D/wiki/Getting-Started-Guide)
 *   [Kenney Vleugels (www.kenney.nl) - spaceship parts](http://www.kenney.nl)
 *   [NOSOAPRADIO.US - music](http://www.nosoapradio.us/)
@@ -32,12 +33,6 @@ Press any of the keys to gain control of the ship at any time.
 
 Thank you for playing! 
 
-
-License
--------
+## License
 
 MIT
-
-
-  
-    
