@@ -8,7 +8,7 @@
     <style type="text/css">
 
     	body {
-    		background-image: url(assets/alien_s_playground_by_alienphysique-d67gmwe.jpg);
+    		background-image: url(assets/background.jpg);
     		background-size: cover;
     		background-repeat: no-repeat;
     		color:white;
@@ -40,7 +40,7 @@
     	    position: absolute;
     		padding: 10px;
     		margin: 5px;
-    		background: black;
+    		background: #0a0a11;
     		opacity: 0.5;
     		z-index: 999;
 			border-radius: 15px;
@@ -55,11 +55,30 @@
     	#right {
     		top:0;
     		right:0;
-    	}    	
+    	}    
+
+    	#loading {
+			position: fixed;
+			top: 50%;
+			left: 50%;
+			margin-top: -50px;
+			margin-left: -100px;
+			width: 200px;
+			height: 50px;
+			background: #2a2a44;
+			border-radius: 15px;
+			z-index: 999;
+			text-align: center;
+			vertical-align: middle;
+			line-height: 50px; 
+		}	
 
     </style>
 </head>
 <body>
+	<div id="loading">
+		Loading...
+	</div>
 	<div id="left" class="info">
 		<h1>TCOB1</h1>
 		<p>
@@ -94,7 +113,7 @@
 		<h2>Credits</h2>
 		<ul>
 			<li><a target="_blank" href="http://phaser.io/">Phaser - JavaScript game engine</a></li>
-			<li><a target="_blank" href="http://www.deviantart.com/art/Alien-s-Playground-375330542">AlienPhysique - background image</a></li>
+			<li><a target="_blank" href="http://abikk.deviantart.com/art/Outsider-191631196">AbikK - background image</a></li>
 			<li><a target="_blank" href="https://github.com/GarageGames/Torque2D/wiki/Getting-Started-Guide">Torque2D tutorial - the asteroid image</a></li>
 			<li><a target="_blank" href="http://www.kenney.nl">Kenney Vleugels (www.kenney.nl) - spaceship parts</a></li>
 			<li><a target="_blank" href="http://www.nosoapradio.us/">NOSOAPRADIO.US - music</a></li>
@@ -128,9 +147,6 @@
 	// Find out how to scale the whole canvas and remove everything that depends on 'scale'
 	// Scale to device size
 
-	// var width = 432;
-	// var height = 720;
-
 	var ratio = 1.6;
 	var height = window.innerHeight - 20;
 	var width = height / ratio;
@@ -145,30 +161,64 @@
     divRight.style.width = wLeft + "px";
     divRight.style.maxHeight = (height - 64) + "px";
 
+    // this is the game itself
 	var gameState = { preload: preload, create: create, update: update, render: render };
+
+	// this is the intro state with "new game" button
     var introState = {
 
 	    preload: function () {
+
+
 	        game.load.image('logo', 'assets/logo.png');
-	        game.load.image('ship', 'assets/ship.png');
+			
+	        game.load.image('bigShip', 'assets/ship.png');
 	        game.load.image('start', 'assets/start.png');
+	        game.load.image('background', 'assets/stars2.png');
+
+	        game.load.spritesheet('musicButton', 'assets/music.png', 256, 64, 2);
+			game.load.spritesheet('ship', 'assets/ship-new.png', 64, 64, 8);
+			game.load.spritesheet('asteroid', 'assets/asteroids.png', 128, 128, 4);
+			game.load.spritesheet('explosion', 'assets/explosion.png', 64, 64, 25);
+	        game.load.spritesheet('energyBar', 'assets/energy.png', 64, 16, 4);
+
+	        game.load.audio('explosionSound', ['assets/explosion.mp3', 'assets/explosion.ogg']);
+	        game.load.audio('music', ['assets/DST-StreetFightLoop.mp3']);	        
 	    },
+
 	    create: function () {
+	    	var divLoading = document.getElementById("loading");
+    		divLoading.style.display='none';
+
 	        var logo = game.add.sprite(0, 0, 'logo');
 	        logo.scale.setTo(scale * 0.5, scale * 0.5);
 
-	        var ship = game.add.sprite(game.world.centerX, game.world.centerY, 'ship');
+	        var ship = game.add.sprite(game.world.centerX, game.world.centerY, 'bigShip');
 	        ship.anchor.setTo(0.5, 0.5);
 	        ship.scale.setTo(scale * 0.5, scale * 0.5);
 
-	        var button = game.add.button(game.world.centerX, game.world.height * 0.75, 'start', actionOnClick, this, 2, 1, 0);
+	        var button = game.add.button(game.world.centerX, game.world.height * 0.75, 'start', actionOnClick, this, 0, 0, 0);
 	        button.scale.setTo(scale, scale);
 	        button.anchor.setTo(0.5, 0.5);
 	    }
+
 	}
 
 	function actionOnClick() {
-		game.state.start('game', true, true) ;
+		game.state.start('game', true, true);
+	}
+
+
+	function actionOnClickMusic() {
+		if (music !== 'defined') {
+			if (music.isPlaying) {
+				music.pause();
+				musicButton.frame = 1;
+			} else {
+				music.play('main');
+				musicButton.frame = 0;
+			}
+		}
 	}
 
 	var bg1;
@@ -183,6 +233,7 @@
 
 	var explosionSound;
 	var music;
+	var musicButton;
 
 	var start = Date.now();
 	var lastTime = Date.now();
@@ -206,17 +257,6 @@
     game.state.add('game', gameState);
 
 	function preload() {
-
-		game.load.spritesheet('ship', 'assets/ship-new.png', 64, 64, 8);
-		game.load.spritesheet('asteroid', 'assets/asteroids.png', 128, 128, 4);
-		game.load.spritesheet('explosion', 'assets/explosion.png', 64, 64, 25);
-        game.load.image('background', 'assets/stars2.png');
-        game.load.spritesheet('energyBar', 'assets/energy.png', 64, 16, 4);
-        game.load.image('start', 'assets/start.png');
-
-        game.load.audio('explosionSound', ['assets/explosion.mp3', 'assets/explosion.ogg']);
-
-        game.load.audio('music', ['assets/DST-StreetFightLoop.mp3']);
 
 
 	}
@@ -310,22 +350,27 @@
 
 		explosionSound = game.add.audio('explosionSound');
 
+		// play music only if it is not already playing
 		if (typeof music === 'undefined') {
 			music = game.add.audio('music', 1, true);
 			music.addMarker('main', 0, 134.008125, 0.5, true);
 	        music.play('main');
 		}
 
-
-
-        var button = game.add.button(0, 0, 'start', actionOnClick, this, 2, 1, 0);
+        var button = game.add.button(0, 0, 'start', actionOnClick, this, 0, 0, 0);
         button.anchor.setTo(0, 0);
         button.scale.setTo(scale * 0.3, scale * 0.3);
         button.alpha=0.5;
+
+        musicButton = game.add.button(game.world.width, 0, 'musicButton', actionOnClickMusic, this, 0, 0, 0);
+        musicButton.anchor.setTo(1, 0);
+        musicButton.scale.setTo(scale * 0.3, scale * 0.3);
+        musicButton.alpha=0.5;
+        
         
 	}
 
-
+	// scrolls the background images (2 images glued together, effect of speed)
 	function updateBackground() {
         bg1.y = bg1.y + scrollSpeed * scale;
         bg2.y = bg2.y + scrollSpeed * scale;
@@ -338,6 +383,7 @@
         }
 	}
 
+	// everyone collides with asteroid and everyone collides with each other
 	function updateCollisions() {
 		for (var i = 0; i < noOfActors; i++) {
 			if (state == 'asteroid') {
@@ -352,6 +398,7 @@
 		}		
 	}
 
+	// head-on collision = death, show explosion and let it fall down
     function collisionHandler(actor, asteroid) {
     	if (actor.body.touching.up) {
     		explosionSound.stop();
@@ -432,6 +479,7 @@
 
 		var vel = baseVelocity * delta;
 		var energyDrain = baseDrain * delta;
+
 		updatePlayer(actors[0], vel, energyDrain, Phaser.Keyboard.W, Phaser.Keyboard.S, Phaser.Keyboard.A, Phaser.Keyboard.D);
 		updatePlayer(actors[1], vel, energyDrain, Phaser.Keyboard.I, Phaser.Keyboard.K, Phaser.Keyboard.J, Phaser.Keyboard.L);
 		updatePlayer(actors[2], vel, energyDrain, Phaser.Keyboard.UP, Phaser.Keyboard.DOWN, Phaser.Keyboard.LEFT, Phaser.Keyboard.RIGHT);
@@ -577,27 +625,11 @@
 	}
 
 	function render() {
-		// game.debug.renderRectangle(asteroid.body);
-		// game.debug.renderRectangle(actors[0].body);
-		// game.debug.renderText(asteroidScale, 32, 288, 'rgb(255,255,255)');
-		// game.debug.renderText(asteroid.body.width, 32, 312, 'rgb(255,255,255)');
-		// game.debug.renderText(asteroid.body.height, 32, 342, 'rgb(255,255,255)');
-		// game.debug.renderText(asteroid.width, 32, 372, 'rgb(255,255,255)');
-		// game.debug.renderText(asteroid.height, 32, 402, 'rgb(255,255,255)');
-
-        // game.debug.renderSpriteCorners(player);
-        // game.debug.renderSpriteCollision(actors[0], 32, 32);
-        // game.debug.renderText(explosionSound.key, 32, 16, 'rgb(255,255,255)');
-        // game.debug.renderText(asteroid.x + ", " + asteroid.y, 32, 256, 'rgb(255,255,255)');
-        // game.debug.renderText(asteroid.angle, 32, 312, 'rgb(255,255,255)');
-        // game.debug.renderText('left: ' + player.body.touching.left, 32, 32, 'rgb(255,255,255)');
-        // game.debug.renderText('right: ' + player.body.touching.right, 32, 64, 'rgb(255,255,255)');
-        // game.debug.renderSoundInfo(music, 32, 350);
-
     }
-var asteroidScale;
+
+
     function resetAsteroid() {
-    	asteroidScale = (Math.random() / 2 + 0.5) * scale;
+    	var asteroidScale = (Math.random() / 2 + 0.5) * scale;
     	asteroid.scale.x = asteroidScale;
     	asteroid.scale.y = asteroidScale;
 		asteroid.x = -width;
